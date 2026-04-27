@@ -2121,8 +2121,8 @@ body.x01-mode .turn-chip-score {
     document.body.classList.toggle('x01-mode', !isCricket);
     els.redScoreLabel.textContent = isCricket ? 'Score' : 'Remaining';
     els.blueScoreLabel.textContent = isCricket ? 'Score' : 'Remaining';
-    els.redScoreSub.textContent = isCricket ? 'Marks tracked below' : `${state.gameType} left`;
-    els.blueScoreSub.textContent = isCricket ? 'Marks tracked below' : `${state.gameType} left`;
+    els.redScoreSub.textContent = isCricket ? 'Marks tracked below' : '';
+    els.blueScoreSub.textContent = isCricket ? 'Marks tracked below' : '';
     els.scoreRed.textContent = summary.redDisplay;
     els.scoreBlue.textContent = summary.blueDisplay;
     els.statusTitle.textContent = isCricket ? 'Cricket board' : `${state.gameType} · ${x01Player}`;
