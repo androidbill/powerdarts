@@ -10,13 +10,13 @@
   "theme_color": "#0d1b2a",
   "icons": [
     {
-      "src": "./powerdarts-icon.svg",
+      "src": "./powerdarts-icon-v2.svg",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any"
     },
     {
-      "src": "./powerdarts-icon.svg",
+      "src": "./powerdarts-icon-v2.svg",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "maskable"

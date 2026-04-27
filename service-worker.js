@@ -1,9 +1,9 @@
-const CACHE_NAME = 'powerdarts-v1';
+const CACHE_NAME = 'powerdarts-v2';
 const APP_ASSETS = [
   './',
   './index.html',
   './manifest.webmanifest',
-  './powerdarts-icon.svg'
+  './powerdarts-icon-v2.svg'
 ];
 
 self.addEventListener('install', (event) => {
