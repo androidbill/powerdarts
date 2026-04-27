@@ -378,6 +378,12 @@ input[type="number"], input[type="text"] { width: 100%; }
   background: linear-gradient(180deg, #3c9960, #257247);
   border-color: rgba(255,255,255,0.22);
 }
+.quick-btn.next-player-btn {
+  grid-column: span 2;
+  background: linear-gradient(180deg, #f0c14d, #ca8b18);
+  color: #18273a;
+  border-color: rgba(255,255,255,0.18);
+}
 .x01-entry {
   display: grid;
   gap: 8px;
@@ -1615,6 +1621,29 @@ body.x01-mode .turn-chip-score {
     }
   }
 
+  function passX01Turn() {
+    if (state.gameType === 'cricket' || state.game.editingRound != null) return;
+
+    setState((s) => {
+      const turnIndex = s.game.rounds.length;
+      const info = getX01TurnInfo(turnIndex, s);
+      s.game.rounds.push({
+        type: s.gameType,
+        team: info.team,
+        playerIndex: info.playerIndex,
+        darts: (s.game.currentEntry.darts || []).map((dart) => ({ ...dart }))
+      });
+      s.game.currentEntry = createCurrentEntry(s.gameType);
+      s.game.editingRound = null;
+    });
+
+    const summary = getGameSummary();
+    if (summary.winner) {
+      upsertGameHistory(summary);
+      openWinModal(summary);
+    }
+  }
+
   function removeX01Dart(index) {
     setState((s) => {
       s.game.currentEntry.darts.splice(index, 1);
@@ -1899,6 +1928,7 @@ body.x01-mode .turn-chip-score {
                 : '';
             return `<button class="quick-btn ${specialClass}" type="button" data-x01-target="${target}">${label}</button>`;
           }).join('')}
+          <button class="quick-btn next-player-btn" type="button" data-x01-pass="1">Next Player</button>
         </div>
         <div class="dart-preview">
           ${[0,1,2].map((index) => {
@@ -1912,7 +1942,7 @@ body.x01-mode .turn-chip-score {
           <div class="turn-preview-score">${currentTotal}</div>
         </div>
       </div>
-      <div class="entry-help">Pick single, double, or triple, then tap a number box to record that dart instantly. Tap an entered dart to remove it.</div>
+      <div class="entry-help">Pick single, double, or triple, then tap a number box to record that dart instantly. Tap an entered dart to remove it, or use Next Player to end the turn early.</div>
     `;
   }
 
@@ -2216,6 +2246,12 @@ body.x01-mode .turn-chip-score {
     if (targetBtn) {
       const raw = targetBtn.dataset.x01Target;
       commitX01Target(raw === 'bull' ? 'bull' : Number(raw));
+      return;
+    }
+
+    const nextPlayerBtn = event.target.closest('[data-x01-pass]');
+    if (nextPlayerBtn) {
+      passX01Turn();
       return;
     }
 
