@@ -985,15 +985,9 @@ body.x01-mode .turn-chip-score {
 <div class="modal-wrap" id="teams-modal-wrap">
   <div class="modal">
     <h2>Edit Teams</h2>
-    <p class="sub">Set names for 1v1 or 2v2 darts play.</p>
-    <div class="entry-mode" style="margin:12px 0;">
-      <button id="teams-mode-1v1" type="button">1 vs 1</button>
-      <button id="teams-mode-2v2" type="button">2 vs 2</button>
-    </div>
-    <div class="field"><label>Red Player 1</label><input id="in-red1" maxlength="14" type="text" /></div>
-    <div class="field" id="field-red2"><label>Red Player 2</label><input id="in-red2" maxlength="14" type="text" /></div>
-    <div class="field"><label>Blue Player 1</label><input id="in-blue1" maxlength="14" type="text" /></div>
-    <div class="field" id="field-blue2"><label>Blue Player 2</label><input id="in-blue2" maxlength="14" type="text" /></div>
+    <p class="sub">Set names for 1 vs 1 darts play.</p>
+    <div class="field"><label>Red Player</label><input id="in-red1" maxlength="14" type="text" /></div>
+    <div class="field"><label>Blue Player</label><input id="in-blue1" maxlength="14" type="text" /></div>
     <div class="modal-actions">
       <button class="btn-secondary" data-close="teams-modal-wrap" type="button">Cancel</button>
       <button class="btn-primary" id="save-teams-btn" type="button">Save</button>
@@ -1092,14 +1086,8 @@ body.x01-mode .turn-chip-score {
     closeHistoryBtn: document.getElementById('close-history-btn'),
     gameHistoryList: document.getElementById('game-history-list'),
     teamsModalWrap: document.getElementById('teams-modal-wrap'),
-    teamsMode1v1: document.getElementById('teams-mode-1v1'),
-    teamsMode2v2: document.getElementById('teams-mode-2v2'),
     inRed1: document.getElementById('in-red1'),
-    inRed2: document.getElementById('in-red2'),
     inBlue1: document.getElementById('in-blue1'),
-    inBlue2: document.getElementById('in-blue2'),
-    fieldRed2: document.getElementById('field-red2'),
-    fieldBlue2: document.getElementById('field-blue2'),
     saveTeamsBtn: document.getElementById('save-teams-btn'),
     redColorBtn: document.getElementById('red-color-btn'),
     blueColorBtn: document.getElementById('blue-color-btn'),
@@ -1132,12 +1120,12 @@ body.x01-mode .turn-chip-score {
   function defaultState() {
     return {
       screen: 'game',
-      mode: '2v2',
+      mode: '1v1',
       gameType: '501',
       teamColors: { red: '#e8332a', blue: '#1a6fe8' },
       teams: {
-        red: { players: ['Player 1', 'Player 2'] },
-        blue: { players: ['Player 3', 'Player 4'] }
+        red: { players: ['Player 1'] },
+        blue: { players: ['Player 2'] }
       },
       game: {
         rounds: [],
@@ -1147,7 +1135,6 @@ body.x01-mode .turn-chip-score {
       },
       gameHistory: [],
       ui: {
-        draftTeamMode: '2v2',
         colorTeam: 'red'
       }
     };
@@ -1247,8 +1234,7 @@ body.x01-mode .turn-chip-score {
 
   function teamNameList(teamKey) {
     const players = state.teams[teamKey].players || [];
-    if (state.mode === '1v1') return [players[0] || 'Player'];
-    return [players[0] || 'Player 1', players[1] || 'Player 2'].filter(Boolean);
+    return [players[0] || 'Player'];
   }
 
   function getTeamDisplay(teamKey) {
@@ -1256,38 +1242,20 @@ body.x01-mode .turn-chip-score {
   }
 
   function openTeamsModal() {
-    state.ui.draftTeamMode = state.mode;
     els.inRed1.value = safeText(state.teams.red.players[0], 'Player 1');
-    els.inRed2.value = safeText(state.teams.red.players[1], 'Player 2');
-    els.inBlue1.value = safeText(state.teams.blue.players[0], state.mode === '1v1' ? 'Player 2' : 'Player 3');
-    els.inBlue2.value = safeText(state.teams.blue.players[1], 'Player 4');
-    [els.inRed1, els.inRed2, els.inBlue1, els.inBlue2].forEach((input) => {
+    els.inBlue1.value = safeText(state.teams.blue.players[0], 'Player 2');
+    [els.inRed1, els.inBlue1].forEach((input) => {
       if (input) delete input.dataset.cleared;
     });
-    renderTeamModeButtons();
     showModal('teams-modal-wrap');
-  }
-
-  function renderTeamModeButtons() {
-    const is1v1 = state.ui.draftTeamMode === '1v1';
-    els.teamsMode1v1.classList.toggle('active', is1v1);
-    els.teamsMode2v2.classList.toggle('active', !is1v1);
-    els.fieldRed2.classList.toggle('hidden', is1v1);
-    els.fieldBlue2.classList.toggle('hidden', is1v1);
   }
 
   function saveTeams() {
     setState((s) => {
-      s.mode = state.ui.draftTeamMode;
       s.teams.red.players[0] = safeText(els.inRed1.value, 'Player 1');
-      s.teams.blue.players[0] = safeText(els.inBlue1.value, s.mode === '1v1' ? 'Player 2' : 'Player 3');
-      if (s.mode === '2v2') {
-        s.teams.red.players[1] = safeText(els.inRed2.value, 'Player 2');
-        s.teams.blue.players[1] = safeText(els.inBlue2.value, 'Player 4');
-      } else {
-        s.teams.red.players[1] = '';
-        s.teams.blue.players[1] = '';
-      }
+      s.teams.blue.players[0] = safeText(els.inBlue1.value, 'Player 2');
+      s.teams.red.players = [s.teams.red.players[0]];
+      s.teams.blue.players = [s.teams.blue.players[0]];
     });
     closeModal('teams-modal-wrap');
   }
@@ -1316,7 +1284,7 @@ body.x01-mode .turn-chip-score {
   }
 
   function currentThrowerIndex(roundIndex) {
-    return state.mode === '2v2' ? roundIndex % 2 : 0;
+    return 0;
   }
 
   function getX01TurnInfo(turnIndex, sourceState = state) {
@@ -1326,7 +1294,7 @@ body.x01-mode .turn-chip-score {
       .filter((round, index) => (round && round.team ? round.team : (index % 2 === 0 ? 'red' : 'blue')) === team).length;
     return {
       team,
-      playerIndex: sourceState.mode === '2v2' ? priorTeamTurns % 2 : 0
+      playerIndex: 0
     };
   }
 
@@ -1797,43 +1765,23 @@ body.x01-mode .turn-chip-score {
     const blueNames = teamNameList('blue');
 
     els.redP1.textContent = redNames[0] || 'Player 1';
-    els.redP2.textContent = state.mode === '2v2' ? (redNames[1] || 'Player 2') : '';
-    els.blueP1.textContent = blueNames[0] || (state.mode === '1v1' ? 'Player 2' : 'Player 3');
-    els.blueP2.textContent = state.mode === '2v2' ? (blueNames[1] || 'Player 4') : '';
+    els.redP2.textContent = '';
+    els.blueP1.textContent = blueNames[0] || 'Player 2';
+    els.blueP2.textContent = '';
 
     [els.redP1, els.redP2, els.blueP1, els.blueP2].forEach((el) => {
       el.classList.remove('active', 'inactive');
     });
 
     if (state.gameType === 'cricket') {
-      const activeThrower = currentThrowerIndex(roundIndex);
-      if (state.mode === '1v1') {
-        els.redP1.classList.add('active');
-        els.blueP1.classList.add('active');
-        return;
-      }
-
-      const redActive = activeThrower === 0 ? els.redP1 : els.redP2;
-      const redInactive = activeThrower === 0 ? els.redP2 : els.redP1;
-      const blueActive = activeThrower === 0 ? els.blueP1 : els.blueP2;
-      const blueInactive = activeThrower === 0 ? els.blueP2 : els.blueP1;
-
-      redActive.classList.add('active');
-      blueActive.classList.add('active');
-      if (redInactive.textContent.trim()) redInactive.classList.add('inactive');
-      if (blueInactive.textContent.trim()) blueInactive.classList.add('inactive');
+      els.redP1.classList.add('active');
+      els.blueP1.classList.add('active');
       return;
     }
 
     const info = getX01TurnInfo(roundIndex);
-    const activeEl = info.team === 'red'
-      ? (info.playerIndex === 0 ? els.redP1 : els.redP2)
-      : (info.playerIndex === 0 ? els.blueP1 : els.blueP2);
-    const inactiveTeammate = info.team === 'red'
-      ? (info.playerIndex === 0 ? els.redP2 : els.redP1)
-      : (info.playerIndex === 0 ? els.blueP2 : els.blueP1);
+    const activeEl = info.team === 'red' ? els.redP1 : els.blueP1;
     activeEl.classList.add('active');
-    if (inactiveTeammate && inactiveTeammate.textContent.trim()) inactiveTeammate.classList.add('inactive');
   }
 
   function renderWaitingPanel(team, activeTeam, activePlayer) {
@@ -2084,14 +2032,6 @@ body.x01-mode .turn-chip-score {
     button.addEventListener('click', () => changeGameType(button.dataset.gameType));
   });
 
-  els.teamsMode1v1.addEventListener('click', () => {
-    state.ui.draftTeamMode = '1v1';
-    renderTeamModeButtons();
-  });
-  els.teamsMode2v2.addEventListener('click', () => {
-    state.ui.draftTeamMode = '2v2';
-    renderTeamModeButtons();
-  });
   els.saveTeamsBtn.addEventListener('click', saveTeams);
   els.closeHistoryBtn.addEventListener('click', () => showScreen('game'));
   els.submitBtn.addEventListener('click', submitTurn);
@@ -2208,7 +2148,7 @@ body.x01-mode .turn-chip-score {
 
 document.addEventListener('focusin', (event) => {
   const input = event.target;
-  if (!input || !['in-red1', 'in-red2', 'in-blue1', 'in-blue2'].includes(input.id)) return;
+  if (!input || !['in-red1', 'in-blue1'].includes(input.id)) return;
   if (!input.dataset.cleared) {
     input.value = '';
     input.dataset.cleared = 'true';
