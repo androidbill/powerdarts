@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title desc">
+  <title id="title">PowerDarts app icon</title>
+  <desc id="desc">A large dartboard with a dart and the word Power across the top.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#13283d" />
+      <stop offset="100%" stop-color="#0b1624" />
+    </linearGradient>
+  </defs>
+  <rect x="0" y="0" width="256" height="256" rx="56" ry="56" fill="url(#bg)" />
+  <circle cx="128" cy="154" r="86" fill="#f6f0de" />
+  <circle cx="128" cy="154" r="72" fill="#20354d" />
+  <circle cx="128" cy="154" r="58" fill="#f6f0de" />
+  <circle cx="128" cy="154" r="44" fill="#20354d" />
+  <circle cx="128" cy="154" r="28" fill="#f6f0de" />
+  <circle cx="128" cy="154" r="16" fill="#c62e26" />
+  <circle cx="128" cy="154" r="7" fill="#2aa35a" />
+  <path d="M79 210l23-8 56-56 17 17-56 56-8 23-32 11z" fill="#ffffff" />
+  <path d="M158 146l22-22 17 17-22 22z" fill="#f2bf43" />
+  <path d="M76 242l23-8-15-15z" fill="#20354d" />
+  <text x="128" y="52" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="34" font-weight="900" letter-spacing="1.5" fill="#ffffff">POWER</text>
+  <rect x="4" y="4" width="248" height="248" rx="52" ry="52" fill="none" stroke="#ffffff" stroke-opacity="0.12" stroke-width="8" />
+</svg>

@@ -1,0 +1,2204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<title>PowerDarts</title>
+<meta name="description" content="PowerDarts is a fast mobile darts scoring app with 501, 301, and Cricket." />
+<meta name="theme-color" content="#0d1b2a" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="PowerDarts" />
+<link rel="manifest" href="./manifest.webmanifest" />
+<link rel="icon" href="./powerdarts-icon.svg" type="image/svg+xml" />
+<link rel="apple-touch-icon" href="./powerdarts-icon.svg" />
+<style>
+:root {
+  --bg: #0d1b2a;
+  --panel: #142233;
+  --panel-2: #1c2e42;
+  --panel-3: #22384f;
+  --text: #ffffff;
+  --muted: #8aa8c1;
+  --border: #25415f;
+  --red: #e8332a;
+  --red-dark: #c0281f;
+  --blue: #1a6fe8;
+  --blue-dark: #1458c0;
+  --gold: #f2bf43;
+  --tap: 46px;
+  --radius: 14px;
+  --shadow: 0 10px 26px rgba(0,0,0,0.24);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body { min-height: 100%; background: var(--bg); color: var(--text); overflow-x: hidden; }
+body { font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; }
+button, input, select { font: inherit; }
+button { cursor: pointer; }
+input[type="number"], input[type="text"] { width: 100%; }
+.hidden { display: none !important; }
+#app {
+  height: 100dvh;
+  min-height: 100dvh;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  width: 100%;
+  max-width: 540px;
+  margin: 0 auto;
+  background: var(--bg);
+  overflow: hidden;
+}
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px 8px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  position: sticky;
+  top: 0;
+  background: rgba(13,27,42,0.95);
+  backdrop-filter: blur(8px);
+  z-index: 10;
+}
+.brand {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.brand-title {
+  font-size: 20px;
+  font-weight: 900;
+  letter-spacing: 1px;
+}
+.brand-sub {
+  font-size: 11px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 1.4px;
+}
+.icon-btn, .mini-btn, .pill, .entry-btn, .mode-btn, .quick-btn, .target-btn, .color-preview, .btn-primary, .btn-secondary, .btn-danger {
+  min-height: var(--tap);
+  border-radius: 12px;
+  border: 1px solid var(--border);
+}
+.icon-btn {
+  width: 40px;
+  height: 40px;
+  background: var(--panel);
+  color: var(--text);
+}
+.dropdown {
+  position: absolute;
+  right: 12px;
+  top: 56px;
+  width: 190px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: var(--shadow);
+  padding: 6px;
+  display: none;
+}
+.dropdown.open { display: block; }
+.dropdown button {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  text-align: left;
+  padding: 12px;
+  border-radius: 10px;
+}
+.dropdown button:active { background: var(--panel-2); }
+.screen {
+  min-height: 0;
+  height: 100%;
+}
+#game-screen {
+  display: grid;
+  grid-template-rows: auto auto auto auto auto minmax(0, 1fr);
+  gap: 6px;
+  padding: 6px;
+  min-height: 0;
+  overflow: hidden;
+}
+#game-history-screen {
+  display: none;
+  min-height: 0;
+  height: 100%;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 6px;
+}
+.card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+.mode-strip {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  padding: 8px;
+}
+.mode-btn {
+  border: 1px solid var(--border);
+  background: var(--panel);
+  color: var(--text);
+  font-weight: 800;
+  letter-spacing: 0.4px;
+}
+.mode-btn.active {
+  background: linear-gradient(180deg, color-mix(in srgb, var(--gold) 60%, var(--panel)), var(--panel-2));
+  border-color: color-mix(in srgb, var(--gold) 55%, var(--border));
+  color: #fff7dc;
+}
+.scoreboards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.team-card {
+  padding: 10px;
+  border-radius: var(--radius);
+  min-width: 0;
+}
+.team-card.red { background: linear-gradient(180deg, color-mix(in srgb, var(--red) 84%, #fff 0%), var(--red-dark)); }
+.team-card.blue { background: linear-gradient(180deg, color-mix(in srgb, var(--blue) 84%, #fff 0%), var(--blue-dark)); }
+.team-top { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+.team-player, .team-player2 {
+  line-height: 1.1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.team-player { font-size: 20px; font-weight: 900; }
+.team-player2 { font-size: 17px; color: rgba(255,255,255,0.82); margin-top: 3px; }
+.team-player.active, .team-player2.active {
+  color: #fff;
+  opacity: 1;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.team-player.inactive, .team-player2.inactive { opacity: 0.34; }
+.mini-btn {
+  min-width: 36px;
+  height: 36px;
+  background: rgba(0,0,0,0.15);
+  color: var(--text);
+  border-color: rgba(255,255,255,0.28);
+}
+.score-boxes {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.score-box {
+  min-height: 116px;
+  border-radius: 18px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 12px 10px;
+  text-align: center;
+}
+.score-box.red {
+  background: color-mix(in srgb, var(--red) 28%, var(--panel));
+  border: 1px solid color-mix(in srgb, var(--red) 55%, var(--border));
+}
+.score-box.blue {
+  background: color-mix(in srgb, var(--blue) 28%, var(--panel));
+  border: 1px solid color-mix(in srgb, var(--blue) 55%, var(--border));
+}
+.score-label {
+  font-size: 11px;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.72);
+}
+.score-value {
+  font-size: clamp(56px, 18vw, 96px);
+  font-weight: 900;
+  line-height: 0.95;
+  letter-spacing: -1px;
+}
+.score-sub {
+  font-size: 11px;
+  color: rgba(255,255,255,0.72);
+}
+.status-card {
+  padding: 10px;
+}
+.section-title {
+  font-size: 14px;
+  font-weight: 800;
+  margin-bottom: 8px;
+}
+.section-sub {
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 10px;
+}
+.cricket-board {
+  display: grid;
+  gap: 6px;
+}
+.cricket-row {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 8px;
+  align-items: center;
+  background: var(--panel-2);
+  border-radius: 12px;
+  padding: 8px 10px;
+}
+.cricket-marks {
+  font-weight: 800;
+  letter-spacing: 1px;
+}
+.cricket-marks.red { color: #ffc6c2; }
+.cricket-marks.blue { color: #c9ddff; text-align: right; }
+.cricket-target-pill {
+  min-width: 48px;
+  text-align: center;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-size: 12px;
+  font-weight: 900;
+  color: #fff7dc;
+  background: rgba(242,191,67,0.12);
+}
+.entry-card {
+  padding: 8px;
+}
+.entry-panels {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.entry-panel {
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  padding: 8px;
+  min-width: 0;
+}
+.entry-panel.red {
+  background: color-mix(in srgb, var(--red) 14%, var(--panel));
+  border-color: color-mix(in srgb, var(--red) 35%, var(--border));
+}
+.entry-panel.blue {
+  background: color-mix(in srgb, var(--blue) 14%, var(--panel));
+  border-color: color-mix(in srgb, var(--blue) 35%, var(--border));
+}
+.entry-label {
+  font-size: 12px;
+  font-weight: 900;
+  margin-bottom: 8px;
+  letter-spacing: 0.7px;
+}
+.score-input {
+  background: rgba(0,0,0,0.14);
+  border: 1px solid rgba(255,255,255,0.18);
+  color: var(--text);
+  border-radius: 12px;
+  min-height: 52px;
+  padding: 0 14px;
+  font-size: 26px;
+  font-weight: 900;
+  text-align: center;
+  margin-bottom: 8px;
+}
+.quick-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+.multiplier-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+.number-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+}
+.quick-btn {
+  background: rgba(0,0,0,0.14);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 800;
+}
+.quick-btn.active {
+  background: rgba(255,255,255,0.14);
+  border-color: rgba(255,255,255,0.3);
+}
+.x01-entry {
+  display: grid;
+  gap: 8px;
+}
+.dart-preview {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+.dart-chip {
+  min-height: 44px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: rgba(0,0,0,0.14);
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 900;
+}
+.dart-chip.empty {
+  color: rgba(255,255,255,0.35);
+  border-style: dashed;
+}
+.turn-preview {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 12px;
+  background: rgba(0,0,0,0.14);
+}
+.turn-preview-main {
+  font-size: 12px;
+  color: rgba(255,255,255,0.82);
+}
+.turn-preview-score {
+  font-size: 18px;
+  font-weight: 900;
+}
+.waiting-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-start;
+  justify-content: center;
+  min-height: 240px;
+  padding: 10px;
+  border-radius: 12px;
+  background: rgba(0,0,0,0.14);
+}
+.waiting-panel strong {
+  font-size: 15px;
+}
+.waiting-panel span {
+  font-size: 12px;
+  color: rgba(255,255,255,0.72);
+  line-height: 1.4;
+}
+.entry-help {
+  color: rgba(255,255,255,0.74);
+  font-size: 11px;
+  margin-top: 8px;
+  line-height: 1.3;
+}
+.cricket-entry {
+  display: grid;
+  gap: 6px;
+}
+.target-row {
+  display: grid;
+  grid-template-columns: 42px repeat(4, 1fr);
+  gap: 5px;
+  align-items: center;
+}
+.target-label {
+  text-align: center;
+  font-size: 11px;
+  font-weight: 900;
+  color: var(--muted);
+}
+.target-btn {
+  background: rgba(0,0,0,0.14);
+  color: var(--text);
+  min-height: 34px;
+  font-size: 13px;
+  font-weight: 800;
+}
+.target-btn.active-red {
+  background: color-mix(in srgb, var(--red) 72%, var(--panel));
+  border-color: rgba(255,255,255,0.3);
+}
+.target-btn.active-blue {
+  background: color-mix(in srgb, var(--blue) 72%, var(--panel));
+  border-color: rgba(255,255,255,0.3);
+}
+.bottom-bar {
+  display: grid;
+  grid-template-columns: 72px 1fr 72px;
+  gap: 8px;
+  align-items: stretch;
+}
+.stat-box {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--panel);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  text-align: center;
+}
+.stat-label {
+  color: var(--muted);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.stat-value {
+  font-size: 22px;
+  font-weight: 900;
+}
+.primary-btn {
+  border: 0;
+  border-radius: 14px;
+  min-height: 56px;
+  background: linear-gradient(180deg, #f4c24a, #d9961b);
+  color: #18273a;
+  font-weight: 900;
+  font-size: 18px;
+  letter-spacing: 0.6px;
+}
+.primary-btn:disabled {
+  opacity: 0.45;
+  filter: grayscale(0.2);
+}
+.history-card {
+  padding: 10px;
+}
+.history-scroller {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+.turn-chip {
+  min-width: 116px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: var(--panel-2);
+  color: var(--text);
+  padding: 10px;
+  text-align: left;
+}
+.turn-chip.selected { box-shadow: 0 0 0 2px rgba(255,255,255,0.12) inset; }
+.turn-chip-head {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+.turn-chip-score {
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.35;
+}
+.turn-chip-score.red { color: #ffc6c2; }
+.turn-chip-score.blue { color: #c9ddff; }
+.screen-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+.pill {
+  background: var(--panel);
+  color: var(--text);
+  padding: 0 14px;
+}
+.history-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.game-history-card {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.game-history-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+.game-history-winner {
+  font-size: 18px;
+  font-weight: 900;
+}
+.game-history-sub, .note, .small-help, .sub {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.45;
+}
+.game-history-meta {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+.game-history-date {
+  font-size: 12px;
+  color: rgba(255,255,255,0.72);
+  white-space: nowrap;
+}
+.history-delete-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--panel-2);
+  color: var(--text);
+}
+.stat-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.stat-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 13px;
+}
+.stat-row strong { white-space: nowrap; }
+.win-banner {
+  border-radius: 16px;
+  padding: 14px;
+  margin-bottom: 10px;
+}
+.win-banner.red { background: linear-gradient(180deg, var(--red), var(--red-dark)); }
+.win-banner.blue { background: linear-gradient(180deg, var(--blue), var(--blue-dark)); }
+.modal-wrap {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.72);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+  z-index: 30;
+}
+.modal-wrap.open { display: flex; }
+.modal {
+  width: min(460px, 100%);
+  max-height: 90dvh;
+  overflow: auto;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 16px;
+  box-shadow: var(--shadow);
+}
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+.field label {
+  font-size: 12px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+}
+.field input[type="text"] {
+  min-height: 48px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--panel-2);
+  color: var(--text);
+  padding: 0 12px;
+}
+.entry-mode {
+  display: flex;
+  gap: 8px;
+}
+.entry-mode button {
+  flex: 1;
+  min-height: 46px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--panel-2);
+  color: var(--text);
+  font-weight: 800;
+}
+.entry-mode button.active {
+  background: linear-gradient(180deg, color-mix(in srgb, var(--gold) 45%, var(--panel-2)), var(--panel-3));
+  border-color: color-mix(in srgb, var(--gold) 40%, var(--border));
+}
+.modal-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+.modal-actions button {
+  flex: 1;
+  min-height: 46px;
+  border-radius: 12px;
+  font-weight: 800;
+}
+.btn-primary {
+  background: linear-gradient(180deg, #f4c24a, #d9961b);
+  color: #18273a;
+  border: 0;
+}
+.btn-secondary {
+  background: var(--panel-2);
+  color: var(--text);
+}
+.btn-danger {
+  background: linear-gradient(180deg, #d65d5d, #b23d3d);
+  color: #fff;
+  border: 0;
+}
+.color-preview-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin: 12px 0;
+}
+.color-preview {
+  min-height: 52px;
+  background: var(--panel-2);
+  color: var(--text);
+  font-weight: 800;
+}
+.color-preview.active { box-shadow: 0 0 0 2px rgba(255,255,255,0.12) inset; }
+.color-input-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+#team-color-input {
+  width: 100%;
+  min-height: 64px;
+  border: 0;
+  background: transparent;
+}
+.color-hex {
+  text-align: center;
+  padding: 10px;
+  border-radius: 12px;
+  background: var(--panel-2);
+  font-weight: 800;
+  letter-spacing: 1px;
+}
+body.x01-mode .brand-sub {
+  display: none;
+}
+body.x01-mode #game-screen {
+  grid-template-rows: auto auto auto auto 1fr auto;
+  gap: 4px;
+  padding: 4px;
+}
+body.x01-mode .mode-strip,
+body.x01-mode .status-card,
+body.x01-mode .entry-card,
+body.x01-mode .history-card {
+  padding: 6px;
+}
+body.x01-mode .mode-strip,
+body.x01-mode .scoreboards,
+body.x01-mode .score-boxes,
+body.x01-mode .entry-panels,
+body.x01-mode .bottom-bar {
+  gap: 6px;
+}
+body.x01-mode .team-card {
+  padding: 8px;
+}
+body.x01-mode .team-player {
+  font-size: 18px;
+}
+body.x01-mode .team-player2 {
+  font-size: 14px;
+  margin-top: 2px;
+}
+body.x01-mode .score-box {
+  min-height: 76px;
+  padding: 8px 6px;
+  border-radius: 14px;
+}
+body.x01-mode .score-label,
+body.x01-mode .score-sub,
+body.x01-mode .stat-label,
+body.x01-mode .section-sub,
+body.x01-mode .turn-chip-head {
+  font-size: 10px;
+}
+body.x01-mode .score-value {
+  font-size: clamp(34px, 12vw, 52px);
+}
+body.x01-mode .section-title {
+  font-size: 13px;
+  margin-bottom: 4px;
+}
+body.x01-mode .section-sub {
+  margin-bottom: 4px;
+}
+body.x01-mode .status-card {
+  min-height: 0;
+}
+body.x01-mode .entry-panels {
+  grid-template-columns: 1fr;
+}
+body.x01-mode .entry-panel {
+  padding: 6px;
+}
+body.x01-mode .entry-panel.waiting {
+  display: none;
+}
+body.x01-mode .entry-label {
+  font-size: 11px;
+  margin-bottom: 4px;
+}
+body.x01-mode .x01-entry {
+  gap: 6px;
+}
+body.x01-mode .multiplier-grid,
+body.x01-mode .number-grid,
+body.x01-mode .dart-preview {
+  gap: 4px;
+}
+body.x01-mode .number-grid {
+  grid-template-columns: repeat(6, 1fr);
+}
+body.x01-mode .quick-btn {
+  min-height: 30px;
+  font-size: 11px;
+  border-radius: 10px;
+}
+body.x01-mode .dart-chip {
+  min-height: 30px;
+  font-size: 11px;
+  border-radius: 10px;
+}
+body.x01-mode .turn-preview {
+  padding: 6px 8px;
+}
+body.x01-mode .turn-preview-main {
+  font-size: 11px;
+}
+body.x01-mode .turn-preview-score {
+  font-size: 15px;
+}
+body.x01-mode .entry-help {
+  display: none;
+}
+body.x01-mode .bottom-bar {
+  grid-template-columns: 56px 1fr 56px;
+  gap: 6px;
+}
+body.x01-mode .stat-box {
+  border-radius: 12px;
+}
+body.x01-mode .stat-value {
+  font-size: 17px;
+}
+body.x01-mode .primary-btn {
+  min-height: 40px;
+  font-size: 14px;
+  border-radius: 12px;
+}
+body.x01-mode .history-card {
+  min-height: 0;
+}
+body.x01-mode .history-scroller {
+  gap: 4px;
+  padding-bottom: 0;
+}
+body.x01-mode .turn-chip {
+  min-width: 84px;
+  padding: 6px;
+  border-radius: 12px;
+}
+body.x01-mode .turn-chip-score {
+  font-size: 11px;
+  line-height: 1.15;
+}
+@media (max-height: 860px) {
+  body.x01-mode .score-box {
+    min-height: 68px;
+  }
+  body.x01-mode .score-value {
+    font-size: clamp(30px, 10vw, 46px);
+  }
+  body.x01-mode .quick-btn,
+  body.x01-mode .dart-chip {
+    min-height: 28px;
+    font-size: 10px;
+  }
+}
+@media (max-width: 430px) {
+  .score-value { font-size: clamp(46px, 17vw, 78px); }
+  .bottom-bar { grid-template-columns: 66px 1fr 66px; }
+  .team-player { font-size: 18px; }
+  .team-player2 { font-size: 15px; }
+}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="header">
+    <div class="brand">
+      <div class="brand-title">PowerDarts</div>
+      <div class="brand-sub">501, 301, and cricket</div>
+    </div>
+    <button class="icon-btn" id="menu-btn" type="button">⋮</button>
+    <div class="dropdown" id="menu-dropdown">
+      <button data-action="history">Game History</button>
+      <button data-action="restart">Restart Game</button>
+      <button data-action="about">About</button>
+    </div>
+  </div>
+
+  <div id="game-screen" class="screen">
+    <div class="card mode-strip">
+      <button class="mode-btn" type="button" data-game-type="501">501</button>
+      <button class="mode-btn" type="button" data-game-type="301">301</button>
+      <button class="mode-btn" type="button" data-game-type="cricket">Cricket</button>
+    </div>
+
+    <div class="scoreboards">
+      <div class="team-card red" id="team-red-card">
+        <div class="team-top">
+          <div style="min-width:0;flex:1;">
+            <div class="team-player" id="red-p1"></div>
+            <div class="team-player2" id="red-p2"></div>
+          </div>
+          <button class="mini-btn" id="red-color-btn" type="button">🎨</button>
+        </div>
+      </div>
+      <div class="team-card blue" id="team-blue-card">
+        <div class="team-top">
+          <div style="min-width:0;flex:1;">
+            <div class="team-player" id="blue-p1"></div>
+            <div class="team-player2" id="blue-p2"></div>
+          </div>
+          <button class="mini-btn" id="blue-color-btn" type="button">🎨</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="score-boxes">
+      <div class="score-box red">
+        <div class="score-label" id="red-score-label">Remaining</div>
+        <div class="score-value" id="score-red">501</div>
+        <div class="score-sub" id="red-score-sub">Left team</div>
+      </div>
+      <div class="score-box blue">
+        <div class="score-label" id="blue-score-label">Remaining</div>
+        <div class="score-value" id="score-blue">501</div>
+        <div class="score-sub" id="blue-score-sub">Right team</div>
+      </div>
+    </div>
+
+    <div class="status-card card" id="status-card">
+      <div class="section-title" id="status-title">501 setup</div>
+      <div class="section-sub" id="status-sub">Enter each side's turn total, then submit the round.</div>
+      <div id="cricket-board" class="cricket-board hidden"></div>
+    </div>
+
+    <div class="entry-card card">
+      <div class="section-title" id="entry-title">Turn Entry</div>
+      <div class="entry-panels">
+        <div class="entry-panel red">
+          <div class="entry-label" id="red-entry-label">RED</div>
+          <div id="red-entry-content"></div>
+        </div>
+        <div class="entry-panel blue">
+          <div class="entry-label" id="blue-entry-label">BLUE</div>
+          <div id="blue-entry-content"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="bottom-bar">
+      <div class="stat-box">
+        <div class="stat-label" id="lead-label">Lead</div>
+        <div class="stat-value" id="lead-value">EVEN</div>
+      </div>
+      <button class="primary-btn" id="submit-btn" type="button">SUBMIT</button>
+      <div class="stat-box">
+        <div class="stat-label">Turn</div>
+        <div class="stat-value" id="turn-num">1</div>
+      </div>
+    </div>
+
+    <div class="history-card card">
+      <div class="section-title">Turn History</div>
+      <div class="history-scroller" id="turn-history"></div>
+    </div>
+  </div>
+
+  <div id="game-history-screen" class="screen">
+    <div class="screen-top">
+      <div>
+        <div class="section-title">Game History</div>
+        <div class="note">Swipe left from the game screen to open this view.</div>
+      </div>
+      <button class="pill" id="close-history-btn" type="button">Back</button>
+    </div>
+    <div class="history-stack" id="game-history-list"></div>
+  </div>
+</div>
+
+<div class="modal-wrap" id="teams-modal-wrap">
+  <div class="modal">
+    <h2>Edit Teams</h2>
+    <p class="sub">Set names for 1v1 or 2v2 darts play.</p>
+    <div class="entry-mode" style="margin:12px 0;">
+      <button id="teams-mode-1v1" type="button">1 vs 1</button>
+      <button id="teams-mode-2v2" type="button">2 vs 2</button>
+    </div>
+    <div class="field"><label>Red Player 1</label><input id="in-red1" maxlength="14" type="text" /></div>
+    <div class="field" id="field-red2"><label>Red Player 2</label><input id="in-red2" maxlength="14" type="text" /></div>
+    <div class="field"><label>Blue Player 1</label><input id="in-blue1" maxlength="14" type="text" /></div>
+    <div class="field" id="field-blue2"><label>Blue Player 2</label><input id="in-blue2" maxlength="14" type="text" /></div>
+    <div class="modal-actions">
+      <button class="btn-secondary" data-close="teams-modal-wrap" type="button">Cancel</button>
+      <button class="btn-primary" id="save-teams-btn" type="button">Save</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-wrap" id="colors-modal-wrap">
+  <div class="modal">
+    <h2>Team Colors</h2>
+    <p class="sub">Pick any color for either team. Saved on your device.</p>
+    <div class="color-preview-row">
+      <button class="color-preview active" id="red-color-preview" type="button">Left Team</button>
+      <button class="color-preview" id="blue-color-preview" type="button">Right Team</button>
+    </div>
+    <div class="color-input-wrap">
+      <input id="team-color-input" type="color" value="#e8332a" />
+      <div class="color-hex" id="color-hex-readout">#E8332A</div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-secondary" data-close="colors-modal-wrap" type="button">Close</button>
+      <button class="btn-danger" id="reset-colors-btn" type="button">Reset</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-wrap" id="win-modal-wrap">
+  <div class="modal">
+    <div class="win-banner" id="win-banner">
+      <div style="font-size:12px; letter-spacing:1.4px; opacity:0.85; text-transform:uppercase;">Winner</div>
+      <div id="win-team" style="font-size:30px; line-height:1.05; margin-top:4px;"></div>
+      <div id="win-score" style="margin-top:6px; font-size:18px;"></div>
+    </div>
+    <div class="section-title" id="win-stats-title">Team Stats</div>
+    <div class="stat-list" id="win-stats"></div>
+    <div class="modal-actions">
+      <button class="btn-secondary" data-close="win-modal-wrap" type="button">Close</button>
+      <button class="btn-primary" id="play-again-btn" type="button">Play Again</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-wrap" id="about-modal-wrap">
+  <div class="modal">
+    <h2>PowerDarts</h2>
+    <p class="sub">Version 1.0</p>
+    <div class="small-help">
+      Fast darts scoring for 501, 301, and Cricket.<br />
+      Created by: Bill Parsons
+    </div>
+    <div class="modal-actions">
+      <button class="btn-primary" data-close="about-modal-wrap" type="button">Close</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+  const STORAGE_KEY = 'powerdarts_v1';
+  const X01_MULTIPLIERS = [
+    { id: 'single', label: 'Single', factor: 1 },
+    { id: 'double', label: 'Double', factor: 2 },
+    { id: 'triple', label: 'Triple', factor: 3 }
+  ];
+  const X01_TARGETS = [...Array.from({ length: 20 }, (_, index) => index + 1), 25, 'bull'];
+  const CRICKET_TARGETS = ['20', '19', '18', '17', '16', '15', 'bull'];
+
+  const els = {
+    menuBtn: document.getElementById('menu-btn'),
+    menuDropdown: document.getElementById('menu-dropdown'),
+    gameScreen: document.getElementById('game-screen'),
+    gameHistoryScreen: document.getElementById('game-history-screen'),
+    teamModeButtons: Array.from(document.querySelectorAll('[data-game-type]')),
+    redP1: document.getElementById('red-p1'),
+    redP2: document.getElementById('red-p2'),
+    blueP1: document.getElementById('blue-p1'),
+    blueP2: document.getElementById('blue-p2'),
+    scoreRed: document.getElementById('score-red'),
+    scoreBlue: document.getElementById('score-blue'),
+    redScoreLabel: document.getElementById('red-score-label'),
+    blueScoreLabel: document.getElementById('blue-score-label'),
+    redScoreSub: document.getElementById('red-score-sub'),
+    blueScoreSub: document.getElementById('blue-score-sub'),
+    statusTitle: document.getElementById('status-title'),
+    statusSub: document.getElementById('status-sub'),
+    cricketBoard: document.getElementById('cricket-board'),
+    redEntryLabel: document.getElementById('red-entry-label'),
+    blueEntryLabel: document.getElementById('blue-entry-label'),
+    redEntryContent: document.getElementById('red-entry-content'),
+    blueEntryContent: document.getElementById('blue-entry-content'),
+    submitBtn: document.getElementById('submit-btn'),
+    turnHistory: document.getElementById('turn-history'),
+    leadLabel: document.getElementById('lead-label'),
+    leadValue: document.getElementById('lead-value'),
+    turnNum: document.getElementById('turn-num'),
+    closeHistoryBtn: document.getElementById('close-history-btn'),
+    gameHistoryList: document.getElementById('game-history-list'),
+    teamsModalWrap: document.getElementById('teams-modal-wrap'),
+    teamsMode1v1: document.getElementById('teams-mode-1v1'),
+    teamsMode2v2: document.getElementById('teams-mode-2v2'),
+    inRed1: document.getElementById('in-red1'),
+    inRed2: document.getElementById('in-red2'),
+    inBlue1: document.getElementById('in-blue1'),
+    inBlue2: document.getElementById('in-blue2'),
+    fieldRed2: document.getElementById('field-red2'),
+    fieldBlue2: document.getElementById('field-blue2'),
+    saveTeamsBtn: document.getElementById('save-teams-btn'),
+    redColorBtn: document.getElementById('red-color-btn'),
+    blueColorBtn: document.getElementById('blue-color-btn'),
+    redColorPreview: document.getElementById('red-color-preview'),
+    blueColorPreview: document.getElementById('blue-color-preview'),
+    teamColorInput: document.getElementById('team-color-input'),
+    colorHexReadout: document.getElementById('color-hex-readout'),
+    resetColorsBtn: document.getElementById('reset-colors-btn'),
+    winBanner: document.getElementById('win-banner'),
+    winTeam: document.getElementById('win-team'),
+    winScore: document.getElementById('win-score'),
+    winStatsTitle: document.getElementById('win-stats-title'),
+    winStats: document.getElementById('win-stats'),
+    playAgainBtn: document.getElementById('play-again-btn'),
+    teamRedCard: document.getElementById('team-red-card'),
+    teamBlueCard: document.getElementById('team-blue-card')
+  };
+
+  function createCricketTurn() {
+    return { '20': 0, '19': 0, '18': 0, '17': 0, '16': 0, '15': 0, bull: 0 };
+  }
+
+  function createCurrentEntry(gameType) {
+    if (gameType === 'cricket') {
+      return { red: createCricketTurn(), blue: createCricketTurn() };
+    }
+    return { multiplier: 'single', target: null, darts: [] };
+  }
+
+  function defaultState() {
+    return {
+      screen: 'game',
+      mode: '2v2',
+      gameType: '501',
+      teamColors: { red: '#e8332a', blue: '#1a6fe8' },
+      teams: {
+        red: { players: ['Player 1', 'Player 2'] },
+        blue: { players: ['Player 3', 'Player 4'] }
+      },
+      game: {
+        rounds: [],
+        editingRound: null,
+        historyEntryId: null,
+        currentEntry: createCurrentEntry('501')
+      },
+      gameHistory: [],
+      ui: {
+        draftTeamMode: '2v2',
+        colorTeam: 'red'
+      }
+    };
+  }
+
+  let state = loadState();
+  let saveTimer = null;
+
+  function loadState() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return defaultState();
+      const parsed = JSON.parse(raw);
+      const merged = deepMerge(defaultState(), parsed);
+      merged.screen = 'game';
+      merged.game.currentEntry = normalizeCurrentEntry(merged.gameType, merged.game.currentEntry);
+      if (merged.gameType !== 'cricket' && merged.game.rounds.some((round) => !Array.isArray(round && round.darts))) {
+        merged.game.rounds = [];
+        merged.game.editingRound = null;
+        merged.game.historyEntryId = null;
+        merged.game.currentEntry = createCurrentEntry(merged.gameType);
+      }
+      return merged;
+    } catch {
+      return defaultState();
+    }
+  }
+
+  function normalizeCurrentEntry(gameType, entry) {
+    if (gameType === 'cricket') {
+      return {
+        red: { ...createCricketTurn(), ...(entry && entry.red ? entry.red : {}) },
+        blue: { ...createCricketTurn(), ...(entry && entry.blue ? entry.blue : {}) }
+      };
+    }
+    return {
+      multiplier: entry && entry.multiplier ? entry.multiplier : 'single',
+      target: entry && entry.target != null ? entry.target : null,
+      darts: Array.isArray(entry && entry.darts) ? entry.darts : []
+    };
+  }
+
+  function deepMerge(base, incoming) {
+    if (Array.isArray(base)) return Array.isArray(incoming) ? incoming : base;
+    if (base && typeof base === 'object') {
+      const out = { ...base };
+      for (const key of Object.keys(base)) {
+        out[key] = deepMerge(base[key], incoming && key in incoming ? incoming[key] : base[key]);
+      }
+      if (incoming) {
+        for (const key of Object.keys(incoming)) {
+          if (!(key in out)) out[key] = incoming[key];
+        }
+      }
+      return out;
+    }
+    return incoming === undefined ? base : incoming;
+  }
+
+  function persist() {
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(() => {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }, 120);
+  }
+
+  function setState(mutator) {
+    mutator(state);
+    render();
+    persist();
+  }
+
+  function showModal(id) { document.getElementById(id).classList.add('open'); }
+  function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+  function closeAllMenus() { els.menuDropdown.classList.remove('open'); }
+
+  function showScreen(screen) {
+    state.screen = screen;
+    els.gameScreen.style.display = screen === 'game' ? 'grid' : 'none';
+    els.gameHistoryScreen.style.display = screen === 'history' ? 'block' : 'none';
+    persist();
+  }
+
+  function safeText(value, fallback) {
+    const trimmed = String(value || '').trim();
+    return trimmed || fallback;
+  }
+
+  function escapeHtml(str) {
+    return String(str)
+      .replaceAll('&', '&amp;')
+      .replaceAll('<', '&lt;')
+      .replaceAll('>', '&gt;')
+      .replaceAll('"', '&quot;')
+      .replaceAll("'", '&#39;');
+  }
+
+  function teamNameList(teamKey) {
+    const players = state.teams[teamKey].players || [];
+    if (state.mode === '1v1') return [players[0] || 'Player'];
+    return [players[0] || 'Player 1', players[1] || 'Player 2'].filter(Boolean);
+  }
+
+  function getTeamDisplay(teamKey) {
+    return teamNameList(teamKey).join(' & ');
+  }
+
+  function openTeamsModal() {
+    state.ui.draftTeamMode = state.mode;
+    els.inRed1.value = safeText(state.teams.red.players[0], 'Player 1');
+    els.inRed2.value = safeText(state.teams.red.players[1], 'Player 2');
+    els.inBlue1.value = safeText(state.teams.blue.players[0], state.mode === '1v1' ? 'Player 2' : 'Player 3');
+    els.inBlue2.value = safeText(state.teams.blue.players[1], 'Player 4');
+    [els.inRed1, els.inRed2, els.inBlue1, els.inBlue2].forEach((input) => {
+      if (input) delete input.dataset.cleared;
+    });
+    renderTeamModeButtons();
+    showModal('teams-modal-wrap');
+  }
+
+  function renderTeamModeButtons() {
+    const is1v1 = state.ui.draftTeamMode === '1v1';
+    els.teamsMode1v1.classList.toggle('active', is1v1);
+    els.teamsMode2v2.classList.toggle('active', !is1v1);
+    els.fieldRed2.classList.toggle('hidden', is1v1);
+    els.fieldBlue2.classList.toggle('hidden', is1v1);
+  }
+
+  function saveTeams() {
+    setState((s) => {
+      s.mode = state.ui.draftTeamMode;
+      s.teams.red.players[0] = safeText(els.inRed1.value, 'Player 1');
+      s.teams.blue.players[0] = safeText(els.inBlue1.value, s.mode === '1v1' ? 'Player 2' : 'Player 3');
+      if (s.mode === '2v2') {
+        s.teams.red.players[1] = safeText(els.inRed2.value, 'Player 2');
+        s.teams.blue.players[1] = safeText(els.inBlue2.value, 'Player 4');
+      } else {
+        s.teams.red.players[1] = '';
+        s.teams.blue.players[1] = '';
+      }
+    });
+    closeModal('teams-modal-wrap');
+  }
+
+  function resetGame(keepType) {
+    setState((s) => {
+      s.game.rounds = [];
+      s.game.editingRound = null;
+      s.game.historyEntryId = null;
+      s.game.currentEntry = createCurrentEntry(keepType || s.gameType);
+    });
+  }
+
+  function changeGameType(nextType) {
+    if (nextType === state.gameType) return;
+    if (state.game.rounds.length && !window.confirm(`Switch to ${nextType.toUpperCase()} and reset the current game?`)) {
+      return;
+    }
+    setState((s) => {
+      s.gameType = nextType;
+      s.game.rounds = [];
+      s.game.editingRound = null;
+      s.game.historyEntryId = null;
+      s.game.currentEntry = createCurrentEntry(nextType);
+    });
+  }
+
+  function currentThrowerIndex(roundIndex) {
+    return state.mode === '2v2' ? roundIndex % 2 : 0;
+  }
+
+  function getX01TurnInfo(turnIndex, sourceState = state) {
+    const team = turnIndex % 2 === 0 ? 'red' : 'blue';
+    const priorTeamTurns = sourceState.game.rounds
+      .slice(0, turnIndex)
+      .filter((round, index) => (round && round.team ? round.team : (index % 2 === 0 ? 'red' : 'blue')) === team).length;
+    return {
+      team,
+      playerIndex: sourceState.mode === '2v2' ? priorTeamTurns % 2 : 0
+    };
+  }
+
+  function getTurnPlayerName(team, playerIndex) {
+    const players = teamNameList(team);
+    return players[playerIndex] || players[0] || 'Player';
+  }
+
+  function getX01RemainingBeforeTurn(turnIndex, team, sourceState = state) {
+    const priorRounds = sourceState.game.rounds.slice(0, turnIndex);
+    const summary = computeX01Timeline(priorRounds, sourceState.gameType === '301' ? 301 : 501);
+    return team === 'red' ? summary.redDisplay : summary.blueDisplay;
+  }
+
+  function getPendingDart(entry) {
+    if (!entry || entry.target == null) return null;
+    const target = entry.target;
+    const multiplier = entry.multiplier || 'single';
+    const factor = X01_MULTIPLIERS.find((item) => item.id === multiplier)?.factor || 1;
+
+    if (target === 'bull') {
+      return { multiplier: 'bull', target: 'bull', score: 50, label: 'BULL' };
+    }
+
+    const numericTarget = Number(target);
+    if (!Number.isFinite(numericTarget)) return null;
+
+    if (numericTarget === 25) {
+      if (multiplier === 'triple') return null;
+      if (multiplier === 'double') {
+        return { multiplier: 'double', target: 25, score: 50, label: 'BULL' };
+      }
+      return { multiplier: 'single', target: 25, score: 25, label: '25' };
+    }
+
+    return {
+      multiplier,
+      target: numericTarget,
+      score: factor * numericTarget,
+      label: `${factor === 1 ? 'S' : factor === 2 ? 'D' : 'T'}${numericTarget}`
+    };
+  }
+
+  function getCurrentDartTotal() {
+    if (state.gameType === 'cricket') return 0;
+    return (state.game.currentEntry.darts || []).reduce((sum, dart) => sum + Number(dart.score || 0), 0);
+  }
+
+  function getPendingDartForTarget(multiplier, target) {
+    return getPendingDart({ multiplier, target });
+  }
+
+  function targetValue(target) {
+    return target === 'bull' ? 25 : Number(target);
+  }
+
+  function clampTurnScore(value) {
+    const parsed = Number(value);
+    if (!Number.isFinite(parsed)) return null;
+    const whole = Math.round(parsed);
+    if (whole < 0 || whole > 180) return null;
+    return whole;
+  }
+
+  function getStartScore() {
+    return state.gameType === '301' ? 301 : 501;
+  }
+
+  function computeX01Timeline(rounds, startScore) {
+    let redRemaining = startScore;
+    let blueRemaining = startScore;
+    let winner = null;
+    const timeline = [];
+
+    rounds.forEach((round, index) => {
+      const team = round.team || (index % 2 === 0 ? 'red' : 'blue');
+      const darts = Array.isArray(round.darts) ? round.darts : [];
+      const turnScore = darts.reduce((sum, dart) => sum + Number(dart.score || 0), 0);
+      const remainingBefore = team === 'red' ? redRemaining : blueRemaining;
+      const proposed = remainingBefore - turnScore;
+      const bust = proposed < 0 || proposed === 1;
+      const applied = bust ? 0 : turnScore;
+      const remainingAfter = bust ? remainingBefore : proposed;
+
+      if (team === 'red') redRemaining = remainingAfter;
+      else blueRemaining = remainingAfter;
+
+      if (!winner && remainingAfter === 0) winner = team;
+
+      timeline.push({
+        team,
+        playerIndex: round.playerIndex || 0,
+        darts,
+        turnScore,
+        applied,
+        bust,
+        remainingAfter,
+        redRemaining,
+        blueRemaining
+      });
+    });
+
+    return {
+      kind: 'x01',
+      startScore,
+      timeline,
+      winner,
+      redDisplay: redRemaining,
+      blueDisplay: blueRemaining,
+      redScored: startScore - redRemaining,
+      blueScored: startScore - blueRemaining
+    };
+  }
+
+  function computeCricketTimeline(rounds) {
+    const marks = {
+      red: createCricketTurn(),
+      blue: createCricketTurn()
+    };
+    let redScore = 0;
+    let blueScore = 0;
+    let winner = null;
+    const timeline = [];
+
+    function applyTeam(turn, team) {
+      const opponent = team === 'red' ? 'blue' : 'red';
+      let points = 0;
+      let marksThrown = 0;
+      CRICKET_TARGETS.forEach((target) => {
+        const hits = Math.max(0, Math.min(3, Number(turn[target] || 0)));
+        marksThrown += hits;
+        const existing = marks[team][target];
+        const opponentOpen = marks[opponent][target] < 3;
+        const scoringHits = opponentOpen ? Math.max(0, existing + hits - 3) : 0;
+        marks[team][target] = Math.min(3, existing + hits);
+        points += scoringHits * targetValue(target);
+      });
+      if (team === 'red') redScore += points;
+      else blueScore += points;
+      return { points, marksThrown };
+    }
+
+    rounds.forEach((round) => {
+      const redTurn = { ...createCricketTurn(), ...(round.redTurn || {}) };
+      const blueTurn = { ...createCricketTurn(), ...(round.blueTurn || {}) };
+      const redDelta = applyTeam(redTurn, 'red');
+      const blueDelta = applyTeam(blueTurn, 'blue');
+
+      if (!winner) {
+        const redClosed = CRICKET_TARGETS.every((target) => marks.red[target] >= 3);
+        const blueClosed = CRICKET_TARGETS.every((target) => marks.blue[target] >= 3);
+        if (redClosed && redScore >= blueScore) winner = 'red';
+        else if (blueClosed && blueScore >= redScore) winner = 'blue';
+      }
+
+      timeline.push({
+        redTurn,
+        blueTurn,
+        redPoints: redDelta.points,
+        bluePoints: blueDelta.points,
+        redMarksThrown: redDelta.marksThrown,
+        blueMarksThrown: blueDelta.marksThrown,
+        redScore,
+        blueScore,
+        marks: {
+          red: { ...marks.red },
+          blue: { ...marks.blue }
+        }
+      });
+    });
+
+    return {
+      kind: 'cricket',
+      timeline,
+      winner,
+      redDisplay: redScore,
+      blueDisplay: blueScore
+    };
+  }
+
+  function getGameSummary() {
+    if (state.gameType === 'cricket') return computeCricketTimeline(state.game.rounds);
+    return computeX01Timeline(state.game.rounds, getStartScore());
+  }
+
+  function validateCurrentEntry() {
+    if (state.gameType === 'cricket') {
+      return CRICKET_TARGETS.some((target) => Number(state.game.currentEntry.red[target] || 0) > 0 || Number(state.game.currentEntry.blue[target] || 0) > 0);
+    }
+    return false;
+  }
+
+  function setX01Multiplier(multiplier) {
+    setState((s) => {
+      s.game.currentEntry.multiplier = multiplier;
+    });
+  }
+
+  function setX01Target(target) {
+    setState((s) => {
+      s.game.currentEntry.target = target;
+    });
+  }
+
+  function commitX01Target(target) {
+    const pending = getPendingDartForTarget(state.game.currentEntry.multiplier, target);
+    if (!pending || (state.game.currentEntry.darts || []).length >= 3) return;
+
+    setState((s) => {
+      const turnIndex = s.game.editingRound != null ? s.game.editingRound : s.game.rounds.length;
+      const info = getX01TurnInfo(turnIndex, s);
+      const entry = s.game.currentEntry;
+      entry.target = target;
+      entry.darts.push(pending);
+      entry.multiplier = 'single';
+      entry.target = null;
+
+      const runningTotal = entry.darts.reduce((sum, dart) => sum + Number(dart.score || 0), 0);
+      const remainingBefore = getX01RemainingBeforeTurn(turnIndex, info.team, s);
+      const proposed = remainingBefore - runningTotal;
+      const bust = proposed < 0 || proposed === 1;
+      const finished = proposed === 0;
+
+      if (s.game.editingRound != null) {
+        return;
+      }
+
+      if (entry.darts.length >= 3 || bust || finished) {
+        const round = {
+          type: s.gameType,
+          team: info.team,
+          playerIndex: info.playerIndex,
+          darts: entry.darts.map((dart) => ({ ...dart }))
+        };
+        if (s.game.editingRound != null) s.game.rounds[s.game.editingRound] = round;
+        else s.game.rounds.push(round);
+        s.game.editingRound = null;
+        s.game.currentEntry = createCurrentEntry(s.gameType);
+      }
+    });
+
+    const summary = getGameSummary();
+    if (summary.winner) {
+      upsertGameHistory(summary);
+      openWinModal(summary);
+    }
+  }
+
+  function removeX01Dart(index) {
+    setState((s) => {
+      s.game.currentEntry.darts.splice(index, 1);
+    });
+  }
+
+  function setCricketHits(team, target, hits) {
+    setState((s) => {
+      const current = Number(s.game.currentEntry[team][target] || 0);
+      s.game.currentEntry[team][target] = current === hits ? 0 : hits;
+    });
+  }
+
+  function selectRound(index) {
+    const round = state.game.rounds[index];
+    if (!round) return;
+    setState((s) => {
+      if (s.game.editingRound === index) {
+        s.game.editingRound = null;
+        s.game.currentEntry = createCurrentEntry(s.gameType);
+        return;
+      }
+      s.game.editingRound = index;
+      if (s.gameType === 'cricket') {
+        s.game.currentEntry = {
+          red: { ...createCricketTurn(), ...(round.redTurn || {}) },
+          blue: { ...createCricketTurn(), ...(round.blueTurn || {}) }
+        };
+      } else {
+        s.game.currentEntry = {
+          multiplier: 'single',
+          target: null,
+          darts: Array.isArray(round.darts) ? round.darts.map((dart) => ({ ...dart })) : []
+        };
+      }
+    });
+  }
+
+  function buildRoundFromEntry() {
+    if (state.gameType === 'cricket') {
+      return {
+        type: 'cricket',
+        redTurn: { ...createCricketTurn(), ...state.game.currentEntry.red },
+        blueTurn: { ...createCricketTurn(), ...state.game.currentEntry.blue }
+      };
+    }
+    return null;
+  }
+
+  function submitTurn() {
+    if (state.gameType !== 'cricket') {
+      if (state.game.editingRound == null) return;
+      setState((s) => {
+        const info = getX01TurnInfo(s.game.editingRound, s);
+        s.game.rounds[s.game.editingRound] = {
+          type: s.gameType,
+          team: info.team,
+          playerIndex: info.playerIndex,
+          darts: (s.game.currentEntry.darts || []).map((dart) => ({ ...dart }))
+        };
+        s.game.editingRound = null;
+        s.game.currentEntry = createCurrentEntry(s.gameType);
+      });
+      const summary = getGameSummary();
+      if (summary.winner) {
+        upsertGameHistory(summary);
+        openWinModal(summary);
+      }
+      return;
+    }
+    if (!validateCurrentEntry()) return;
+    const round = buildRoundFromEntry();
+    setState((s) => {
+      if (s.game.editingRound != null) s.game.rounds[s.game.editingRound] = round;
+      else s.game.rounds.push(round);
+      s.game.editingRound = null;
+      s.game.currentEntry = createCurrentEntry(s.gameType);
+    });
+    const summary = getGameSummary();
+    if (summary.winner) {
+      upsertGameHistory(summary);
+      openWinModal(summary);
+    }
+  }
+
+  function formatPlayedDate(value) {
+    try {
+      return new Date(value).toLocaleString([], {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit'
+      });
+    } catch {
+      return value || '';
+    }
+  }
+
+  function buildPlayerStats(summary) {
+    const rows = [];
+    const playerBuckets = {
+      red: teamNameList('red').map((name) => ({ name, side: 'Red', total: 0, turns: 0, marks: 0 })),
+      blue: teamNameList('blue').map((name) => ({ name, side: 'Blue', total: 0, turns: 0, marks: 0 }))
+    };
+
+    summary.timeline.forEach((row, index) => {
+      if (summary.kind === 'cricket') {
+        const playerIndex = currentThrowerIndex(index);
+        ['red', 'blue'].forEach((team) => {
+          const bucket = playerBuckets[team][playerIndex] || playerBuckets[team][0];
+          if (!bucket) return;
+          bucket.turns += 1;
+          bucket.total += team === 'red' ? row.redPoints : row.bluePoints;
+          bucket.marks += team === 'red' ? row.redMarksThrown : row.blueMarksThrown;
+        });
+        return;
+      }
+
+      const bucket = playerBuckets[row.team][row.playerIndex || 0] || playerBuckets[row.team][0];
+      if (!bucket) return;
+      bucket.turns += 1;
+      bucket.total += row.applied;
+      bucket.marks += row.darts.length;
+    });
+
+    ['red', 'blue'].forEach((team) => {
+      playerBuckets[team].forEach((bucket) => {
+        const avg = bucket.turns ? (bucket.total / bucket.turns).toFixed(1) : '0.0';
+        rows.push({
+          name: bucket.name,
+          side: bucket.side,
+          total: bucket.total,
+          turns: bucket.turns,
+          avg,
+          marks: bucket.marks
+        });
+      });
+    });
+    return rows;
+  }
+
+  function buildHistoryRecord(summary) {
+    const winner = summary.winner;
+    if (!winner) return null;
+    const existing = state.game.historyEntryId ? state.gameHistory.find((entry) => entry.id === state.game.historyEntryId) : null;
+    const playedAt = existing && existing.playedAt ? existing.playedAt : new Date().toISOString();
+    const score = summary.kind === 'cricket'
+      ? `${summary.redDisplay} - ${summary.blueDisplay}`
+      : `${summary.redDisplay} - ${summary.blueDisplay} remaining`;
+    return {
+      id: state.game.historyEntryId || `game-${Date.now()}`,
+      playedAt,
+      gameType: state.gameType,
+      winnerSide: winner,
+      winnerTeam: getTeamDisplay(winner),
+      score,
+      turns: summary.timeline.length,
+      stats: buildPlayerStats(summary)
+    };
+  }
+
+  function upsertGameHistory(summary) {
+    const record = buildHistoryRecord(summary);
+    if (!record) return;
+    setState((s) => {
+      s.game.historyEntryId = record.id;
+      const index = s.gameHistory.findIndex((entry) => entry.id === record.id);
+      if (index >= 0) s.gameHistory[index] = record;
+      else s.gameHistory.unshift(record);
+    });
+  }
+
+  function deleteGameHistory(id) {
+    setState((s) => {
+      s.gameHistory = s.gameHistory.filter((entry) => entry.id !== id);
+      if (s.game.historyEntryId === id) s.game.historyEntryId = null;
+    });
+  }
+
+  function openWinModal(summary) {
+    if (!summary.winner) return;
+    const stats = buildPlayerStats(summary);
+    els.winBanner.className = `win-banner ${summary.winner}`;
+    els.winTeam.textContent = getTeamDisplay(summary.winner);
+    els.winScore.textContent = summary.kind === 'cricket'
+      ? `Cricket final: ${summary.redDisplay} - ${summary.blueDisplay}`
+      : `${state.gameType} final: ${summary.redDisplay} - ${summary.blueDisplay} remaining`;
+    els.winStatsTitle.textContent = summary.kind === 'cricket' ? 'Points · Turns · Marks' : 'Points · Turns · PPT';
+    els.winStats.innerHTML = '';
+    stats.forEach((row) => {
+      const div = document.createElement('div');
+      div.className = 'stat-row';
+      div.innerHTML = summary.kind === 'cricket'
+        ? `<strong>${escapeHtml(row.name)}</strong><span>${escapeHtml(row.side)} · ${row.total} pts · ${row.turns} turns · ${row.marks} marks</span>`
+        : `<strong>${escapeHtml(row.name)}</strong><span>${escapeHtml(row.side)} · ${row.total} pts · ${row.turns} turns · ${row.avg} PPT</span>`;
+      els.winStats.appendChild(div);
+    });
+    showModal('win-modal-wrap');
+  }
+
+  function playAgain() {
+    closeModal('win-modal-wrap');
+    resetGame();
+  }
+
+  function marksText(count) {
+    return 'X'.repeat(count) + '-'.repeat(3 - count);
+  }
+
+  function renderModeButtons() {
+    els.teamModeButtons.forEach((button) => {
+      button.classList.toggle('active', button.dataset.gameType === state.gameType);
+    });
+  }
+
+  function renderPlayers() {
+    const roundIndex = state.game.editingRound != null ? state.game.editingRound : state.game.rounds.length;
+    const redNames = teamNameList('red');
+    const blueNames = teamNameList('blue');
+
+    els.redP1.textContent = redNames[0] || 'Player 1';
+    els.redP2.textContent = state.mode === '2v2' ? (redNames[1] || 'Player 2') : '';
+    els.blueP1.textContent = blueNames[0] || (state.mode === '1v1' ? 'Player 2' : 'Player 3');
+    els.blueP2.textContent = state.mode === '2v2' ? (blueNames[1] || 'Player 4') : '';
+
+    [els.redP1, els.redP2, els.blueP1, els.blueP2].forEach((el) => {
+      el.classList.remove('active', 'inactive');
+    });
+
+    if (state.gameType === 'cricket') {
+      const activeThrower = currentThrowerIndex(roundIndex);
+      if (state.mode === '1v1') {
+        els.redP1.classList.add('active');
+        els.blueP1.classList.add('active');
+        return;
+      }
+
+      const redActive = activeThrower === 0 ? els.redP1 : els.redP2;
+      const redInactive = activeThrower === 0 ? els.redP2 : els.redP1;
+      const blueActive = activeThrower === 0 ? els.blueP1 : els.blueP2;
+      const blueInactive = activeThrower === 0 ? els.blueP2 : els.blueP1;
+
+      redActive.classList.add('active');
+      blueActive.classList.add('active');
+      if (redInactive.textContent.trim()) redInactive.classList.add('inactive');
+      if (blueInactive.textContent.trim()) blueInactive.classList.add('inactive');
+      return;
+    }
+
+    const info = getX01TurnInfo(roundIndex);
+    const activeEl = info.team === 'red'
+      ? (info.playerIndex === 0 ? els.redP1 : els.redP2)
+      : (info.playerIndex === 0 ? els.blueP1 : els.blueP2);
+    const inactiveTeammate = info.team === 'red'
+      ? (info.playerIndex === 0 ? els.redP2 : els.redP1)
+      : (info.playerIndex === 0 ? els.blueP2 : els.blueP1);
+    activeEl.classList.add('active');
+    if (inactiveTeammate && inactiveTeammate.textContent.trim()) inactiveTeammate.classList.add('inactive');
+  }
+
+  function renderWaitingPanel(team, activeTeam, activePlayer) {
+    return `
+      <div class="waiting-panel">
+        <strong>${team === activeTeam ? 'Editing this turn' : 'Waiting'}</strong>
+        <span>${team === activeTeam ? `${activePlayer} is up. Enter each dart, then the turn advances automatically after the third dart.` : `${activePlayer} is shooting for the ${activeTeam === 'red' ? 'red' : 'blue'} side right now.`}</span>
+      </div>
+    `;
+  }
+
+  function renderX01Entry(team) {
+    const roundIndex = state.game.editingRound != null ? state.game.editingRound : state.game.rounds.length;
+    const info = getX01TurnInfo(roundIndex);
+    const activePlayer = getTurnPlayerName(info.team, info.playerIndex);
+    if (team !== info.team) {
+      return renderWaitingPanel(team, info.team, activePlayer);
+    }
+
+    const entry = state.game.currentEntry;
+    const currentTotal = getCurrentDartTotal();
+    return `
+      <div class="x01-entry">
+        <div class="multiplier-grid">
+          ${X01_MULTIPLIERS.map((item) => `<button class="quick-btn ${entry.multiplier === item.id ? 'active' : ''}" type="button" data-x01-multiplier="${item.id}">${item.label}</button>`).join('')}
+        </div>
+        <div class="number-grid">
+          ${X01_TARGETS.map((target) => {
+            const label = target === 'bull' ? 'Bull' : String(target);
+            return `<button class="quick-btn" type="button" data-x01-target="${target}">${label}</button>`;
+          }).join('')}
+        </div>
+        <div class="dart-preview">
+          ${[0,1,2].map((index) => {
+            const dart = entry.darts[index];
+            if (!dart) return `<div class="dart-chip empty">Dart ${index + 1}</div>`;
+            return `<button class="dart-chip" type="button" data-remove-dart="${index}">${escapeHtml(dart.label)}</button>`;
+          }).join('')}
+        </div>
+        <div class="turn-preview">
+          <div class="turn-preview-main">${escapeHtml(activePlayer)} · dart ${Math.min((entry.darts || []).length + 1, 3)} of 3</div>
+          <div class="turn-preview-score">${currentTotal}</div>
+        </div>
+      </div>
+      <div class="entry-help">Pick single, double, or triple, then tap a number box to record that dart instantly. Tap an entered dart to remove it.</div>
+    `;
+  }
+
+  function renderCricketEntry(team) {
+    const selectedClass = team === 'red' ? 'active-red' : 'active-blue';
+    return `
+      <div class="cricket-entry">
+        ${CRICKET_TARGETS.map((target) => {
+          const value = Number(state.game.currentEntry[team][target] || 0);
+          return `
+            <div class="target-row">
+              <div class="target-label">${target === 'bull' ? 'BULL' : target}</div>
+              ${[0,1,2,3].map((hits) => `<button class="target-btn ${value === hits ? selectedClass : ''}" type="button" data-cricket-team="${team}" data-target="${target}" data-hits="${hits}">${hits}</button>`).join('')}
+            </div>
+          `;
+        }).join('')}
+      </div>
+      <div class="entry-help">Set how many marks that side hit on each target for this turn.</div>
+    `;
+  }
+
+  function renderCricketBoard(summary) {
+    els.cricketBoard.innerHTML = '';
+    els.cricketBoard.classList.toggle('hidden', state.gameType !== 'cricket');
+    if (state.gameType !== 'cricket') return;
+    const marks = summary.timeline.length
+      ? summary.timeline[summary.timeline.length - 1].marks
+      : { red: createCricketTurn(), blue: createCricketTurn() };
+    CRICKET_TARGETS.forEach((target) => {
+      const row = document.createElement('div');
+      row.className = 'cricket-row';
+      row.innerHTML = `
+        <div class="cricket-marks red">${marksText(marks.red[target])}</div>
+        <div class="cricket-target-pill">${target === 'bull' ? 'BULL' : target}</div>
+        <div class="cricket-marks blue">${marksText(marks.blue[target])}</div>
+      `;
+      els.cricketBoard.appendChild(row);
+    });
+  }
+
+  function renderTurnHistory(summary) {
+    els.turnHistory.innerHTML = '';
+    summary.timeline.forEach((row, index) => {
+      const chip = document.createElement('button');
+      chip.className = 'turn-chip' + (state.game.editingRound === index ? ' selected' : '');
+      if (summary.kind === 'cricket') {
+        chip.innerHTML = `
+          <div class="turn-chip-head">Turn ${index + 1}</div>
+          <div class="turn-chip-score red">Red ${row.redScore} (+${row.redPoints})</div>
+          <div class="turn-chip-score blue">Blue ${row.blueScore} (+${row.bluePoints})</div>
+        `;
+      } else {
+        const dartsLabel = row.darts.map((dart) => dart.label).join(' · ') || 'No darts';
+        chip.innerHTML = `
+          <div class="turn-chip-head">Turn ${index + 1} · ${row.team.toUpperCase()}</div>
+          <div class="turn-chip-score ${row.team}">${escapeHtml(dartsLabel)} = ${row.turnScore}</div>
+          <div class="turn-chip-score ${row.team}">${row.bust ? 'BUST' : `Remain ${row.remainingAfter}`}</div>
+        `;
+      }
+      chip.addEventListener('click', () => selectRound(index));
+      els.turnHistory.appendChild(chip);
+    });
+  }
+
+  function renderGameHistory() {
+    els.gameHistoryList.innerHTML = '';
+    if (!state.gameHistory.length) {
+      const empty = document.createElement('div');
+      empty.className = 'card game-history-card';
+      empty.innerHTML = `<div class="section-title" style="margin-bottom:4px;">No games yet</div><div class="note">Finish a game to save the winner, mode, stats, and date played here.</div>`;
+      els.gameHistoryList.appendChild(empty);
+      return;
+    }
+    state.gameHistory.forEach((entry) => {
+      const card = document.createElement('div');
+      card.className = 'card game-history-card';
+      const statsHtml = (entry.stats || []).map((row) => {
+        const detail = entry.gameType === 'cricket'
+          ? `${row.side} · ${row.total} pts · ${row.turns} turns · ${row.marks} marks`
+          : `${row.side} · ${row.total} pts · ${row.turns} turns · ${row.avg} PPT`;
+        return `<div class="stat-row"><strong>${escapeHtml(row.name)}</strong><span>${escapeHtml(detail)}</span></div>`;
+      }).join('');
+      card.innerHTML = `
+        <div class="game-history-head">
+          <div>
+            <div class="section-title" style="margin-bottom:6px;">${escapeHtml(String(entry.gameType).toUpperCase())}</div>
+            <div class="game-history-winner">${escapeHtml(entry.winnerTeam || 'Unknown')}</div>
+            <div class="game-history-sub" style="margin-top:6px;">Final: ${escapeHtml(entry.score || '')} · ${entry.turns || 0} turns</div>
+          </div>
+          <div class="game-history-meta">
+            <div class="game-history-date">${escapeHtml(formatPlayedDate(entry.playedAt))}</div>
+            <button class="history-delete-btn" type="button" data-history-delete="${escapeHtml(entry.id)}" aria-label="Delete this game history">✕</button>
+          </div>
+        </div>
+        <div class="stat-list">${statsHtml}</div>
+      `;
+      els.gameHistoryList.appendChild(card);
+    });
+  }
+
+  function renderLead(summary) {
+    if (summary.kind === 'cricket') {
+      const diff = summary.redDisplay - summary.blueDisplay;
+      els.leadLabel.textContent = 'Lead';
+      els.leadValue.textContent = diff === 0 ? 'EVEN' : diff > 0 ? `R+${diff}` : `B+${Math.abs(diff)}`;
+      return;
+    }
+    const diff = summary.blueDisplay - summary.redDisplay;
+    els.leadLabel.textContent = 'Lead';
+    els.leadValue.textContent = diff === 0 ? 'EVEN' : diff > 0 ? `R+${diff}` : `B+${Math.abs(diff)}`;
+  }
+
+  function applyTheme() {
+    document.documentElement.style.setProperty('--red', state.teamColors.red);
+    document.documentElement.style.setProperty('--red-dark', state.teamColors.red);
+    document.documentElement.style.setProperty('--blue', state.teamColors.blue);
+    document.documentElement.style.setProperty('--blue-dark', state.teamColors.blue);
+    els.redColorPreview.style.background = state.teamColors.red;
+    els.blueColorPreview.style.background = state.teamColors.blue;
+  }
+
+  function syncColorPickerUI() {
+    const active = state.ui.colorTeam;
+    els.redColorPreview.classList.toggle('active', active === 'red');
+    els.blueColorPreview.classList.toggle('active', active === 'blue');
+    const value = state.teamColors[active];
+    els.teamColorInput.value = value;
+    els.colorHexReadout.textContent = value.toUpperCase();
+  }
+
+  function openColorsModal(team) {
+    state.ui.colorTeam = team;
+    syncColorPickerUI();
+    showModal('colors-modal-wrap');
+  }
+
+  function renderGame() {
+    const summary = getGameSummary();
+    applyTheme();
+    renderModeButtons();
+    renderPlayers();
+    renderCricketBoard(summary);
+
+    const isCricket = state.gameType === 'cricket';
+    const x01Info = isCricket ? null : getX01TurnInfo(state.game.editingRound != null ? state.game.editingRound : state.game.rounds.length);
+    const x01Player = x01Info ? getTurnPlayerName(x01Info.team, x01Info.playerIndex) : '';
+    document.body.classList.toggle('x01-mode', !isCricket);
+    els.redScoreLabel.textContent = isCricket ? 'Score' : 'Remaining';
+    els.blueScoreLabel.textContent = isCricket ? 'Score' : 'Remaining';
+    els.redScoreSub.textContent = isCricket ? 'Marks tracked below' : `${state.gameType} left`;
+    els.blueScoreSub.textContent = isCricket ? 'Marks tracked below' : `${state.gameType} left`;
+    els.scoreRed.textContent = summary.redDisplay;
+    els.scoreBlue.textContent = summary.blueDisplay;
+    els.statusTitle.textContent = isCricket ? 'Cricket board' : `${state.gameType} · ${x01Player}`;
+    els.statusSub.textContent = isCricket
+      ? 'Close 20 through 15 and bull, then score while the other side is still open.'
+      : state.game.editingRound != null
+        ? 'You are editing a saved turn. Adjust the darts, then tap Update to save and return to live entry.'
+        : 'Enter one dart at a time. After the third dart, or a bust, the next side takes over automatically.';
+    els.redEntryLabel.textContent = isCricket ? getTeamDisplay('red').toUpperCase() : `${getTeamDisplay('red').toUpperCase()}${x01Info && x01Info.team === 'red' ? ' · ACTIVE' : ''}`;
+    els.blueEntryLabel.textContent = isCricket ? getTeamDisplay('blue').toUpperCase() : `${getTeamDisplay('blue').toUpperCase()}${x01Info && x01Info.team === 'blue' ? ' · ACTIVE' : ''}`;
+    els.redEntryContent.innerHTML = isCricket ? renderCricketEntry('red') : renderX01Entry('red');
+    els.blueEntryContent.innerHTML = isCricket ? renderCricketEntry('blue') : renderX01Entry('blue');
+    els.redEntryContent.parentElement.classList.toggle('waiting', !isCricket && !!x01Info && x01Info.team !== 'red');
+    els.blueEntryContent.parentElement.classList.toggle('waiting', !isCricket && !!x01Info && x01Info.team !== 'blue');
+    els.turnNum.textContent = String(state.game.rounds.length + 1);
+    els.submitBtn.disabled = isCricket ? !validateCurrentEntry() : state.game.editingRound == null;
+    els.submitBtn.textContent = isCricket ? (state.game.editingRound != null ? 'UPDATE' : 'SUBMIT') : (state.game.editingRound != null ? 'UPDATE' : 'AUTO');
+    renderLead(summary);
+    renderTurnHistory(summary);
+  }
+
+  function render() {
+    renderGame();
+    renderGameHistory();
+    showScreen(state.screen);
+    syncColorPickerUI();
+  }
+
+  els.menuBtn.addEventListener('click', (event) => {
+    event.stopPropagation();
+    els.menuDropdown.classList.toggle('open');
+  });
+
+  document.addEventListener('click', () => closeAllMenus());
+  els.menuDropdown.addEventListener('click', (event) => {
+    const btn = event.target.closest('button[data-action]');
+    if (!btn) return;
+    const action = btn.dataset.action;
+    closeAllMenus();
+    if (action === 'history') showScreen('history');
+    if (action === 'restart') {
+      if (window.confirm('Restart the current game?')) resetGame();
+    }
+    if (action === 'about') showModal('about-modal-wrap');
+  });
+
+  document.querySelectorAll('[data-close]').forEach((btn) => {
+    btn.addEventListener('click', () => closeModal(btn.dataset.close));
+  });
+
+  els.teamModeButtons.forEach((button) => {
+    button.addEventListener('click', () => changeGameType(button.dataset.gameType));
+  });
+
+  els.teamsMode1v1.addEventListener('click', () => {
+    state.ui.draftTeamMode = '1v1';
+    renderTeamModeButtons();
+  });
+  els.teamsMode2v2.addEventListener('click', () => {
+    state.ui.draftTeamMode = '2v2';
+    renderTeamModeButtons();
+  });
+  els.saveTeamsBtn.addEventListener('click', saveTeams);
+  els.closeHistoryBtn.addEventListener('click', () => showScreen('game'));
+  els.submitBtn.addEventListener('click', submitTurn);
+  els.playAgainBtn.addEventListener('click', playAgain);
+  els.teamRedCard.addEventListener('click', (event) => {
+    if (!event.target.closest('button')) openTeamsModal();
+  });
+  els.teamBlueCard.addEventListener('click', (event) => {
+    if (!event.target.closest('button')) openTeamsModal();
+  });
+  els.redColorBtn.addEventListener('click', () => openColorsModal('red'));
+  els.blueColorBtn.addEventListener('click', () => openColorsModal('blue'));
+  els.redColorPreview.addEventListener('click', () => {
+    state.ui.colorTeam = 'red';
+    syncColorPickerUI();
+  });
+  els.blueColorPreview.addEventListener('click', () => {
+    state.ui.colorTeam = 'blue';
+    syncColorPickerUI();
+  });
+  els.teamColorInput.addEventListener('input', (event) => {
+    const value = event.target.value;
+    setState((s) => {
+      s.teamColors[s.ui.colorTeam] = value;
+    });
+  });
+  els.resetColorsBtn.addEventListener('click', () => {
+    setState((s) => {
+      s.teamColors.red = '#e8332a';
+      s.teamColors.blue = '#1a6fe8';
+    });
+  });
+
+  document.addEventListener('click', (event) => {
+    const historyDeleteBtn = event.target.closest('[data-history-delete]');
+    if (historyDeleteBtn) {
+      deleteGameHistory(historyDeleteBtn.dataset.historyDelete);
+      return;
+    }
+
+    const multiplierBtn = event.target.closest('[data-x01-multiplier]');
+    if (multiplierBtn) {
+      setX01Multiplier(multiplierBtn.dataset.x01Multiplier);
+      return;
+    }
+
+    const targetBtn = event.target.closest('[data-x01-target]');
+    if (targetBtn) {
+      const raw = targetBtn.dataset.x01Target;
+      commitX01Target(raw === 'bull' ? 'bull' : Number(raw));
+      return;
+    }
+
+    const removeDartBtn = event.target.closest('[data-remove-dart]');
+    if (removeDartBtn) {
+      removeX01Dart(Number(removeDartBtn.dataset.removeDart));
+      return;
+    }
+
+    const cricketBtn = event.target.closest('[data-cricket-team]');
+    if (cricketBtn) {
+      setCricketHits(cricketBtn.dataset.cricketTeam, cricketBtn.dataset.target, Number(cricketBtn.dataset.hits));
+    }
+  });
+
+  let touchStartX = 0;
+  let touchStartY = 0;
+  let swipeEligible = false;
+
+  els.gameScreen.addEventListener('touchstart', (event) => {
+    if (state.screen !== 'game') return;
+    if (document.querySelector('.modal-wrap.open')) return;
+    if (event.target.closest('#turn-history')) return;
+    const touch = event.changedTouches[0];
+    touchStartX = touch.clientX;
+    touchStartY = touch.clientY;
+    swipeEligible = true;
+  }, { passive: true });
+
+  els.gameScreen.addEventListener('touchend', (event) => {
+    if (!swipeEligible || state.screen !== 'game') return;
+    swipeEligible = false;
+    const touch = event.changedTouches[0];
+    const dx = touch.clientX - touchStartX;
+    const dy = touch.clientY - touchStartY;
+    if (dx < -70 && Math.abs(dx) > Math.abs(dy) * 1.2) {
+      showScreen('history');
+    }
+  }, { passive: true });
+
+  els.gameHistoryScreen.addEventListener('touchstart', (event) => {
+    if (state.screen !== 'history') return;
+    if (document.querySelector('.modal-wrap.open')) return;
+    const touch = event.changedTouches[0];
+    touchStartX = touch.clientX;
+    touchStartY = touch.clientY;
+    swipeEligible = true;
+  }, { passive: true });
+
+  els.gameHistoryScreen.addEventListener('touchend', (event) => {
+    if (!swipeEligible || state.screen !== 'history') return;
+    swipeEligible = false;
+    const touch = event.changedTouches[0];
+    const dx = touch.clientX - touchStartX;
+    const dy = touch.clientY - touchStartY;
+    if (dx > 70 && Math.abs(dx) > Math.abs(dy) * 1.2) {
+      showScreen('game');
+    }
+  }, { passive: true });
+
+  applyTheme();
+  render();
+})();
+
+document.addEventListener('focusin', (event) => {
+  const input = event.target;
+  if (!input || !['in-red1', 'in-red2', 'in-blue1', 'in-blue2'].includes(input.id)) return;
+  if (!input.dataset.cleared) {
+    input.value = '';
+    input.dataset.cleared = 'true';
+  }
+});
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./service-worker.js').catch((error) => {
+      console.warn('PowerDarts service worker registration failed.', error);
+    });
+  });
+}
+</script>
+</body>
+</html>
