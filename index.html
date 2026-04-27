@@ -122,6 +122,11 @@ input[type="number"], input[type="text"] { width: 100%; }
   padding: 6px;
   min-height: 0;
   overflow: hidden;
+  width: 100%;
+  min-width: 0;
+}
+#game-screen > * {
+  min-width: 0;
 }
 #game-history-screen {
   display: none;
@@ -135,12 +140,14 @@ input[type="number"], input[type="text"] { width: 100%; }
   background: var(--panel);
   border: 1px solid var(--border);
   border-radius: var(--radius);
+  min-width: 0;
 }
 .mode-strip {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 8px;
   padding: 8px;
+  min-width: 0;
 }
 .mode-btn {
   border: 1px solid var(--border);
@@ -158,6 +165,7 @@ input[type="number"], input[type="text"] { width: 100%; }
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 8px;
+  min-width: 0;
 }
 .team-card {
   padding: 10px;
@@ -193,6 +201,7 @@ input[type="number"], input[type="text"] { width: 100%; }
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 8px;
+  min-width: 0;
 }
 .score-box {
   min-height: 116px;
@@ -279,12 +288,14 @@ input[type="number"], input[type="text"] { width: 100%; }
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 8px;
+  min-width: 0;
 }
 .entry-panel {
   border-radius: 14px;
   border: 1px solid var(--border);
   padding: 8px;
   min-width: 0;
+  overflow: hidden;
 }
 .entry-panel.red {
   background: color-mix(in srgb, var(--red) 14%, var(--panel));
@@ -340,11 +351,13 @@ input[type="number"], input[type="text"] { width: 100%; }
 .x01-entry {
   display: grid;
   gap: 8px;
+  min-width: 0;
 }
 .dart-preview {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 6px;
+  min-width: 0;
 }
 .dart-chip {
   min-height: 44px;
@@ -440,6 +453,7 @@ input[type="number"], input[type="text"] { width: 100%; }
   grid-template-columns: 72px 1fr 72px;
   gap: 8px;
   align-items: stretch;
+  min-width: 0;
 }
 .stat-box {
   border: 1px solid var(--border);
@@ -478,12 +492,21 @@ input[type="number"], input[type="text"] { width: 100%; }
 }
 .history-card {
   padding: 10px;
+  min-width: 0;
+  overflow: hidden;
 }
 .history-scroller {
   display: flex;
   gap: 8px;
   overflow-x: auto;
+  overflow-y: hidden;
   padding-bottom: 4px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  flex-wrap: nowrap;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-x;
 }
 .turn-chip {
   min-width: 116px;
@@ -493,6 +516,7 @@ input[type="number"], input[type="text"] { width: 100%; }
   color: var(--text);
   padding: 10px;
   text-align: left;
+  flex: 0 0 auto;
 }
 .turn-chip.selected { box-shadow: 0 0 0 2px rgba(255,255,255,0.12) inset; }
 .turn-chip-head {
