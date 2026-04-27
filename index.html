@@ -345,9 +345,38 @@ input[type="number"], input[type="text"] { width: 100%; }
   font-size: 13px;
   font-weight: 800;
 }
-.quick-btn.active {
-  background: rgba(255,255,255,0.14);
+.quick-btn.active-red,
+.quick-btn.active-blue {
   border-color: rgba(255,255,255,0.3);
+  color: #fff;
+}
+.quick-btn.active-red {
+  background: color-mix(in srgb, var(--red) 72%, var(--panel));
+}
+.quick-btn.active-blue {
+  background: color-mix(in srgb, var(--blue) 72%, var(--panel));
+}
+.x01-entry.team-red .quick-btn:active,
+.x01-entry.team-red .quick-btn.touching {
+  background: color-mix(in srgb, var(--red) 72%, var(--panel));
+  border-color: rgba(255,255,255,0.3);
+  color: #fff;
+}
+.x01-entry.team-blue .quick-btn:active,
+.x01-entry.team-blue .quick-btn.touching {
+  background: color-mix(in srgb, var(--blue) 72%, var(--panel));
+  border-color: rgba(255,255,255,0.3);
+  color: #fff;
+}
+.quick-btn.special-double,
+.quick-btn.special-bull {
+  background: linear-gradient(180deg, #c84a4a, #9d2e2e);
+  border-color: rgba(255,255,255,0.22);
+}
+.quick-btn.special-triple,
+.quick-btn.special-25 {
+  background: linear-gradient(180deg, #3c9960, #257247);
+  border-color: rgba(255,255,255,0.22);
 }
 .x01-entry {
   display: grid;
@@ -1041,8 +1070,8 @@ body.x01-mode .turn-chip-score {
     <h2>Team Colors</h2>
     <p class="sub">Pick any color for either team. Saved on your device.</p>
     <div class="color-preview-row">
-      <button class="color-preview active" id="red-color-preview" type="button">Left Team</button>
-      <button class="color-preview" id="blue-color-preview" type="button">Right Team</button>
+      <button class="color-preview active" id="red-color-preview" type="button">Player 1</button>
+      <button class="color-preview" id="blue-color-preview" type="button">Player 2</button>
     </div>
     <div id="iro-picker"></div>
     <div class="color-hex" id="color-hex-readout">#E8332A</div>
@@ -1278,6 +1307,10 @@ body.x01-mode .turn-chip-score {
 
   function getTeamDisplay(teamKey) {
     return teamNameList(teamKey).join(' & ');
+  }
+
+  function teamDisplayName(teamKey) {
+    return safeText(teamNameList(teamKey)[0], teamKey === 'red' ? 'Player 1' : 'Player 2');
   }
 
   function openTeamsModal() {
@@ -1836,6 +1869,7 @@ body.x01-mode .turn-chip-score {
     const roundIndex = state.game.editingRound != null ? state.game.editingRound : state.game.rounds.length;
     const info = getX01TurnInfo(roundIndex);
     const activePlayer = getTurnPlayerName(info.team, info.playerIndex);
+    const selectedClass = info.team === 'red' ? 'active-red' : 'active-blue';
     if (team !== info.team) {
       return renderWaitingPanel(team, info.team, activePlayer);
     }
@@ -1843,14 +1877,27 @@ body.x01-mode .turn-chip-score {
     const entry = state.game.currentEntry;
     const currentTotal = getCurrentDartTotal();
     return `
-      <div class="x01-entry">
+      <div class="x01-entry team-${info.team}">
         <div class="multiplier-grid">
-          ${X01_MULTIPLIERS.map((item) => `<button class="quick-btn ${entry.multiplier === item.id ? 'active' : ''}" type="button" data-x01-multiplier="${item.id}">${item.label}</button>`).join('')}
+          ${X01_MULTIPLIERS.map((item) => {
+            const specialClass = item.id === 'double'
+              ? 'special-double'
+              : item.id === 'triple'
+                ? 'special-triple'
+                : '';
+            const activeClass = entry.multiplier === item.id ? selectedClass : '';
+            return `<button class="quick-btn ${specialClass} ${activeClass}" type="button" data-x01-multiplier="${item.id}">${item.label}</button>`;
+          }).join('')}
         </div>
         <div class="number-grid">
           ${X01_TARGETS.map((target) => {
             const label = target === 'bull' ? 'Bull' : String(target);
-            return `<button class="quick-btn" type="button" data-x01-target="${target}">${label}</button>`;
+            const specialClass = target === 25
+              ? 'special-25'
+              : target === 'bull'
+                ? 'special-bull'
+                : '';
+            return `<button class="quick-btn ${specialClass}" type="button" data-x01-target="${target}">${label}</button>`;
           }).join('')}
         </div>
         <div class="dart-preview">
@@ -1989,6 +2036,8 @@ body.x01-mode .turn-chip-score {
 
   function syncColorPickerUI() {
     const active = state.ui.colorTeam;
+    els.redColorPreview.textContent = teamDisplayName('red');
+    els.blueColorPreview.textContent = teamDisplayName('blue');
     els.redColorPreview.classList.toggle('active', active === 'red');
     els.blueColorPreview.classList.toggle('active', active === 'blue');
     const value = (state.teamColors[active] || '#000000').toUpperCase();
@@ -2124,6 +2173,30 @@ body.x01-mode .turn-chip-score {
       s.teamColors.blue = '#1a6fe8';
     });
     syncColorPickerUI();
+  });
+
+  document.addEventListener('pointerdown', (event) => {
+    const quickBtn = event.target.closest('.x01-entry .quick-btn');
+    if (!quickBtn) return;
+    quickBtn.classList.add('touching');
+  });
+
+  document.addEventListener('pointerup', () => {
+    document.querySelectorAll('.x01-entry .quick-btn.touching').forEach((button) => {
+      button.classList.remove('touching');
+    });
+  });
+
+  document.addEventListener('pointercancel', () => {
+    document.querySelectorAll('.x01-entry .quick-btn.touching').forEach((button) => {
+      button.classList.remove('touching');
+    });
+  });
+
+  document.addEventListener('pointerleave', () => {
+    document.querySelectorAll('.x01-entry .quick-btn.touching').forEach((button) => {
+      button.classList.remove('touching');
+    });
   });
 
   document.addEventListener('click', (event) => {
